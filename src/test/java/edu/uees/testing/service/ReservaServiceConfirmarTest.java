@@ -13,6 +13,7 @@ import org.mockito.InOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.inOrder;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
@@ -122,5 +123,24 @@ class ReservaServiceConfirmarTest {
         InOrder orden = inOrder(repository, notificador);
         orden.verify(repository).guardar(reserva);
         orden.verify(notificador).enviarConfirmacion(reserva);
+    }
+
+    @Test
+    @DisplayName("[CP-25] Si falla el guardado, la excepción se propaga y no se notifica al cliente")
+    void siFallaElGuardadoNoSeNotifica() {
+        // Arrange (Stub: hay disponibilidad, pero el repositorio falla al guardar)
+        when(disponibilidad.estaDisponible(any())).thenReturn(true);
+        doThrow(new IllegalStateException("Base de datos no disponible"))
+                .when(repository).guardar(any());
+        Reserva reserva = new Reserva("R-005", "NORMAL");
+
+        // Act
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> servicio.confirmar(reserva));
+
+        // Assert (no se debe avisar al cliente de una reserva que no quedó guardada)
+        assertEquals("Base de datos no disponible", ex.getMessage());
+        verify(notificador, never()).enviarConfirmacion(any());
     }
 }
