@@ -19,3 +19,12 @@ Estudiante: Luis Saá Garzón
 | CP-13 | Descuentos | Total cero | VIP, 0 | 0 | Límite | 0 es válido (la condición es < 0) |
 | CP-14 | Descuentos | Total negativo | NORMAL, -1 | IllegalArgumentException | Inválido | Mensaje "Total base inválido" |
 | CP-15 | Descuentos | Total apenas negativo | ESTUDIANTE, -0.01 | IllegalArgumentException | Límite / Inválido | Frontera del total en cero |
+| CP-16 | Confirmación | Reserva disponible | Stub disponibilidad = true | CONFIRMADA, se guarda y se notifica | Normal | Flujo principal con dependencias |
+| CP-17 | Confirmación | Sin disponibilidad | Stub disponibilidad = false | IllegalStateException, no guarda ni notifica | Alternativo | No avisar algo que no se confirmó |
+| CP-18 | Confirmación | Reserva nula | null | IllegalArgumentException, no consulta dependencias | Inválido | Cortar el flujo lo antes posible |
+| CP-19 | Confirmación | Consulta única | Stub = true | estaDisponible se llama 1 vez con la misma reserva | Normal | Evitar consultas repetidas o con otro objeto |
+| CP-20 | Confirmación | Orden de pasos | Stub = true | Primero guardar, después notificar | Normal | No notificar algo no guardado |
+| CP-21 | Reserva | Id nulo | null, NORMAL | IllegalArgumentException "Id obligatorio" | Inválido | Reservas sin identificador |
+| CP-22 | Reserva | Id en blanco | "   ", NORMAL | IllegalArgumentException "Id obligatorio" | Inválido | Reservas sin identificador |
+| CP-23 | Reserva | Tipo nulo | R-010, null | Tipo NORMAL, estado PENDIENTE | Alternativo | Valor por defecto |
+| CP-24 | Reserva | Cancelar | R-011, VIP | Estado CANCELADA | Normal | Cambio de estado |
