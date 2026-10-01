@@ -59,6 +59,25 @@ class ReservaServiceConfirmarTest {
     }
 
     @Test
+    @DisplayName("[CP-17] Sin disponibilidad: lanza excepción y no guarda ni notifica")
+    void reservaNoDisponibleNoSeGuardaNiNotifica() {
+        // Arrange (Stub: el horario NO está disponible)
+        when(disponibilidad.estaDisponible(any())).thenReturn(false);
+        Reserva reserva = new Reserva("R-002", "NORMAL");
+
+        // Act
+        IllegalStateException ex = assertThrows(
+                IllegalStateException.class,
+                () -> servicio.confirmar(reserva));
+
+        // Assert
+        assertEquals("Horario no disponible", ex.getMessage());
+        assertEquals(EstadoReserva.PENDIENTE, reserva.getEstado());
+        verify(repository, never()).guardar(any());
+        verify(notificador, never()).enviarConfirmacion(any());
+    }
+
+    @Test
     @DisplayName("[CP-18] Reserva nula: se detiene antes de consultar cualquier dependencia")
     void reservaNulaNoConsultaDependencias() {
         // Arrange: no se configura nada, la validación debe cortar el flujo antes
