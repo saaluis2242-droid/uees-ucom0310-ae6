@@ -147,6 +147,18 @@ class ReservaServiceTest {
     }
 
     @Test
+    @DisplayName("[CP-26] El tipo en minúsculas (estudiante) también aplica el descuento")
+    void estudianteEnMinusculasTambienRecibeDescuento() {
+        // Arrange
+        String tipo = "estudiante";
+        double totalBase = 200;
+        // Act
+        double total = servicio.calcularTotal(tipo, totalBase);
+        // Assert
+        assertEquals(180.0, total, DELTA);
+    }
+
+    @Test
     @DisplayName("[CP-11] Un tipo que no existe se cobra como NORMAL")
     void tipoDesconocidoNoRecibeDescuento() {
         // Arrange
