@@ -93,4 +93,34 @@ class ReservaServiceConfirmarTest {
         verify(repository, never()).guardar(any());
         verify(notificador, never()).enviarConfirmacion(any());
     }
+
+    @Test
+    @DisplayName("[CP-19] Se consulta la disponibilidad una sola vez y con la misma reserva")
+    void disponibilidadSeConsultaUnaVezConLaMismaReserva() {
+        // Arrange
+        when(disponibilidad.estaDisponible(any())).thenReturn(true);
+        Reserva reserva = new Reserva("R-003", "VIP");
+
+        // Act
+        servicio.confirmar(reserva);
+
+        // Assert
+        verify(disponibilidad, times(1)).estaDisponible(reserva);
+    }
+
+    @Test
+    @DisplayName("[CP-20] Primero se guarda la reserva y después se envía la notificación")
+    void seGuardaAntesDeNotificar() {
+        // Arrange
+        when(disponibilidad.estaDisponible(any())).thenReturn(true);
+        Reserva reserva = new Reserva("R-004", "ESTUDIANTE");
+
+        // Act
+        servicio.confirmar(reserva);
+
+        // Assert (el orden importa: no se debe avisar al cliente de algo que no se guardó)
+        InOrder orden = inOrder(repository, notificador);
+        orden.verify(repository).guardar(reserva);
+        orden.verify(notificador).enviarConfirmacion(reserva);
+    }
 }
