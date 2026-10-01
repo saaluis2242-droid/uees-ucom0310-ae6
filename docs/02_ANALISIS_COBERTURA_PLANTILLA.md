@@ -1,31 +1,38 @@
-# Análisis de cobertura – Laboratorio 2 (Semana 7)
-
-Estudiante: Luis Saá Garzón
-Rama: test/lab2-dobles-cobertura
+# Análisis de cobertura – Ae6
 
 ## Resultado observado
 | Momento | Pruebas | Instrucciones | Ramas | ReservaService (instr. / ramas) | Reserva (instr. / ramas) |
 |---|---|---|---|---|---|
-| Solo Laboratorio 1 | 16 | 33 % | 44 % | 62 % / 66 % | 0 % / n/a |
-| + pruebas de confirmar() con Mockito | 21 | 87 % | 83 % | 100 % / 100 % | 60 % / 50 % |
-| + pruebas de Reserva (a partir del reporte) | 25 | 100 % | 100 % | 100 % / 100 % | 100 % / 100 % |
+| Laboratorio 1 | 16 | 33 % | 44 % | 62 % / 66 % | 0 % / 0 % |
+| + confirmar() con Mockito (Lab 2) | 21 | 87 % | 83 % | 100 % / 100 % | 60 % / 50 % |
+| + ReservaTest (Lab 2) | 25 | 100 % | 100 % | 100 % / 100 % | 100 % / 100 % |
+| + CP-25 y CP-26 (Ae6) | 27 | 100 % | 100 % | 100 % / 100 % | 100 % / 100 % |
 
-- Clase o método analizado: ReservaService.confirmar(Reserva) y la clase Reserva.
+- Cobertura de líneas final: 39/39. Cobertura de ramas final: 18/18.
+- Clases analizadas: ReservaService (puedeCancelar, calcularTotal, confirmar) y Reserva.
 
 ## Huecos relevantes
-1. Antes del Laboratorio 2, confirmar() estaba en 0 %: ninguna prueba protegía la confirmación, el caso sin disponibilidad ni la reserva nula.
-2. Con las pruebas de confirmar(), el reporte mostró que el constructor de Reserva tenía 3 de 6 ramas sin ejecutar (id nulo, id en blanco y tipo nulo) y que cancelar() nunca se ejecutaba. Es decir, nadie comprobaba que no se pueda crear una reserva sin id.
-3. Código cubierto pero mal probado: las 3 pruebas obligatorias ya dejan ReservaService en 100 %, pero no comprueban que se guarde antes de notificar ni que la disponibilidad se consulte una sola vez. Si alguien invierte esas dos líneas, la cobertura seguiría en 100 % y las 3 pruebas seguirían en verde.
+1. Antes del Lab 2, `confirmar()` estaba en 0 % (8 líneas y 4 ramas sin ejecutar): ningún flujo con dependencias estaba protegido.
+2. Con las pruebas de `confirmar()`, el constructor de `Reserva` tenía 3 de 6 ramas sin ejecutar (id nulo, id en blanco, tipo nulo) y `cancelar()` en 0 %.
+3. Con 100 % de cobertura, una mutación manual (cambiar `equalsIgnoreCase` por `equals` en ESTUDIANTE) **no hizo fallar ninguna prueba**. La rama se ejecutaba, pero nadie revisaba el caso en minúsculas.
+
+## Experimento de mutación manual (con 25 pruebas y 100 % de cobertura)
+| Mutación | ¿Se detectó? | Prueba que falló |
+|---|---|---|
+| `>= 2` → `> 2` | Sí | CP-02 |
+| VIP `0.85` → `0.80` | Sí | CP-08, CP-10 |
+| `totalBase < 0` → `<= 0` | Sí | CP-13 |
+| Quitar validación de reserva nula | Sí | CP-18 |
+| Notificar antes de guardar | Sí | CP-20 (y CP-25 después de Ae6) |
+| ESTUDIANTE `equalsIgnoreCase` → `equals` | **No** (antes de CP-26) | — → ahora CP-26 |
 
 ## Decisiones
-- ¿Qué prueba nueva se añadió?
-  - CP-19 disponibilidadSeConsultaUnaVezConLaMismaReserva y CP-20 seGuardaAntesDeNotificar (InOrder).
-  - ReservaTest: CP-21 id nulo, CP-22 id en blanco, CP-23 tipo nulo se asume NORMAL, CP-24 cancelar cambia a CANCELADA.
-- ¿Qué riesgo protege?
-  - Que se notifique al cliente una reserva que no se guardó, y que se creen reservas sin identificador.
-- ¿Por qué no basta con el porcentaje?
-  - CP-19 y CP-20 no subieron ni un punto la cobertura, pero sí protegen reglas. El 100 % solo dice que las líneas se ejecutaron, no que el resultado se haya revisado.
+- Pruebas añadidas a partir del análisis: ReservaTest (CP-21 a CP-24), CP-25 (falla al guardar) y CP-26 (estudiante en minúsculas).
+- Riesgos que protegen: reservas sin id, notificar una reserva que no se guardó y perder el descuento por cómo se escribe el tipo.
+- Por qué no basta el porcentaje: CP-19, CP-20, CP-25 y CP-26 no subieron la cobertura ni un punto, pero detectan errores reales. La cobertura mide qué se ejecutó, no qué se comprobó.
 
-## Comportamiento que todavía no está protegido
-- Qué pasa si repository.guardar() falla (por ejemplo, se cae la base de datos). Hoy la excepción sube y no se notifica, pero ninguna prueba lo asegura. Prueba propuesta: usar doThrow(new RuntimeException()).when(repository).guardar(any()) y verificar con verify(notificador, never()) que no se envía la confirmación.
-- No hay ninguna regla sobre confirmar una reserva que ya está CANCELADA. El código lo permite. Habría que preguntar si es correcto antes de escribir una prueba.
+## Limitaciones conocidas
+- No hay regla definida para confirmar una reserva ya CANCELADA (el código lo permite).
+- Si falla el notificador, la reserva queda CONFIRMADA y guardada pero el cliente no recibe aviso; no está definido qué debería pasar.
+- `calcularTotal` usa `double` para dinero; con valores con muchos decimales podría haber errores de redondeo.
+- Un tipo vacío (`""`) no se convierte en NORMAL en `Reserva`; no está definido si debería.
